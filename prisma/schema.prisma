@@ -1,0 +1,67 @@
+// Prisma schema for AI Receptionist Backend
+// Database: Supabase (Postgres)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CallLog {
+  id             String    @id @default(cuid())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  businessId     String?
+  business       Business? @relation(fields: [businessId], references: [id])
+  callerPhone    String?
+  callerName     String?
+  email          String?
+  requestedStart DateTime?
+  requestedEnd   DateTime?
+  bookedStart    DateTime?
+  bookedEnd      DateTime?
+  status         String    // e.g. "booked", "suggested_alternatives", "failed", "unavailable"
+  decisionReason String?
+  rawPayload     Json?
+  toolCallId     String?   // Vapi toolCallId for tracking
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([callerPhone])
+}
+
+model Appointment {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  businessId    String?
+  business      Business? @relation(fields: [businessId], references: [id])
+  name          String
+  phone         String?
+  email         String?
+  start         DateTime
+  end           DateTime
+  source        String    @default("twilio_vapi")
+  calendarId    String?   // Google Calendar ID used
+  googleEventId String?   // Google Calendar event ID
+  callLogId     String?   // Reference to CallLog if created from a call
+
+  @@index([start])
+  @@index([googleEventId])
+  @@index([callLogId])
+}
+
+model Business {
+  id           String        @id @default(cuid())
+  name         String
+  phoneNumber  String        @unique
+  timezone     String        @default("Europe/Rome")
+  description  String?
+  knowledgeBase Json?        // Per-business knowledge base (hours, menu, policies, etc.)
+  createdAt    DateTime      @default(now())
+  appointments Appointment[]
+  callLogs     CallLog[]
+}

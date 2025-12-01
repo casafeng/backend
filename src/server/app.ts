@@ -2,6 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import { loadEnv } from '../config/env';
 import { registerRoutes } from './routes';
 import { disconnectPrisma } from '../db/prisma';
+import cors from 'cors';
 
 /**
  * Express application setup

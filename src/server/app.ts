@@ -35,6 +35,20 @@ export function createApp(): Express {
     req.rawBody = buf.toString('utf8');
   };
   
+    // CORS configuration - allow frontend to access backend
+  app.use(
+    cors({
+      origin: [
+        "http://localhost:8080",
+        "http://10.5.106.158:8080",
+        "https://ringlify.it",
+        "https://www.ringlify.it",
+        /\.vercel\.app$/,     // allow all Vercel preview deployments
+      ],
+      credentials: true,
+    })
+  );
+
   // Middleware
   app.use(express.json({ limit: '10mb', verify: captureRawBody }));
   app.use(express.urlencoded({ extended: true, verify: captureRawBody }));

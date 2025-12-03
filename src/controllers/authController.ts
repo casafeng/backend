@@ -83,7 +83,7 @@ export async function businessSignup(req: Request, res: Response): Promise<void>
     });
 
     // Return created business (excluding sensitive fields if any)
-    res.status(201).json({
+    const response = {
       id: business.id,
       name: business.name,
       email: business.email,
@@ -92,7 +92,18 @@ export async function businessSignup(req: Request, res: Response): Promise<void>
       description: business.description,
       knowledgeBase: business.knowledgeBase,
       createdAt: business.createdAt,
-    });
+    };
+
+    // Log for debugging (remove in production if needed)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Business signup successful:', {
+        id: business.id,
+        name: business.name,
+        email: business.email,
+      });
+    }
+
+    res.status(201).json(response);
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({

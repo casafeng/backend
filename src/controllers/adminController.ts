@@ -15,6 +15,55 @@ const businessUpdateSchema = z.object({
 });
 
 /**
+ * GET /admin/businesses/by-email/:email
+ * Get business by email address
+ */
+export async function getBusinessByEmail(req: Request, res: Response): Promise<void> {
+  try {
+    const { email } = req.params;
+
+    if (!email) {
+      res.status(400).json({
+        error: 'Email is required',
+      });
+      return;
+    }
+
+    const decodedEmail = decodeURIComponent(email);
+    const prisma = getPrismaClient();
+
+    const business = await prisma.business.findFirst({
+      where: { email: decodedEmail },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+        timezone: true,
+        description: true,
+        knowledgeBase: true,
+        createdAt: true,
+      },
+    });
+
+    if (!business) {
+      res.status(404).json({
+        error: 'Business not found',
+      });
+      return;
+    }
+
+    res.status(200).json(business);
+  } catch (error) {
+    console.error('Get business by email error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? String(error) : undefined,
+    });
+  }
+}
+
+/**
  * GET /admin/businesses/:id
  * Get business by ID
  */

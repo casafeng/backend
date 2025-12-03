@@ -1,7 +1,7 @@
 import { Express } from 'express';
 import { handleVoiceWebhook, healthCheck } from '../controllers/voiceWebhook';
 import { businessSignup } from '../controllers/authController';
-import { getBusiness, updateBusiness } from '../controllers/adminController';
+import { getBusiness, getBusinessByEmail, updateBusiness } from '../controllers/adminController';
 
 /**
  * Register all routes
@@ -14,6 +14,8 @@ export function registerRoutes(app: Express): void {
   app.post('/auth/business/signup', businessSignup);
   
   // Admin routes
+  // Note: by-email route must come before :id route to avoid route conflicts
+  app.get('/admin/businesses/by-email/:email', getBusinessByEmail);
   app.get('/admin/businesses/:id', getBusiness);
   app.put('/admin/businesses/:id', updateBusiness);
   

@@ -44,7 +44,8 @@ export async function businessSignup(req: Request, res: Response): Promise<void>
         phoneNumber: validatedData.phoneNumber,
         timezone: validatedData.timezone,
         description: validatedData.description,
-        knowledgeBase: validatedData.knowledgeBase || null,
+        // Use undefined instead of null for optional JSON fields (Prisma v5+ requirement)
+        knowledgeBase: validatedData.knowledgeBase,
       },
     });
 

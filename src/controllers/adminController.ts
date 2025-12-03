@@ -369,10 +369,57 @@ export async function updateKnowledgeBase(req: Request, res: Response): Promise<
 }
 
 /**
- * GET /admin/businesses/:id/call-logs
- * Get call logs for a business
+ * GET /admin/call-logs?businessId=...
+ * Get call logs for a business (using query parameter)
  */
 export async function getCallLogs(req: Request, res: Response): Promise<void> {
+  try {
+    const businessId = req.query.businessId as string;
+
+    if (!businessId || businessId === 'undefined') {
+      res.status(400).json({
+        error: 'Business ID is required',
+        message: 'Provide businessId as a query parameter: /admin/call-logs?businessId=...',
+      });
+      return;
+    }
+
+    const prisma = getPrismaClient();
+
+    // Verify business exists
+    const business = await prisma.business.findUnique({
+      where: { id: businessId },
+    });
+
+    if (!business) {
+      res.status(404).json({
+        error: 'Business not found',
+      });
+      return;
+    }
+
+    // Get call logs for this business
+    const callLogs = await prisma.callLog.findMany({
+      where: { businessId },
+      orderBy: { createdAt: 'desc' },
+      take: 100, // Limit to most recent 100
+    });
+
+    res.status(200).json(callLogs);
+  } catch (error) {
+    console.error('Get call logs error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? String(error) : undefined,
+    });
+  }
+}
+
+/**
+ * GET /admin/businesses/:id/call-logs
+ * Get call logs for a business (using path parameter - alternative route)
+ */
+export async function getCallLogsByPath(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
 
@@ -415,10 +462,57 @@ export async function getCallLogs(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * GET /admin/businesses/:id/appointments
- * Get appointments for a business
+ * GET /admin/appointments?businessId=...
+ * Get appointments for a business (using query parameter)
  */
 export async function getAppointments(req: Request, res: Response): Promise<void> {
+  try {
+    const businessId = req.query.businessId as string;
+
+    if (!businessId || businessId === 'undefined') {
+      res.status(400).json({
+        error: 'Business ID is required',
+        message: 'Provide businessId as a query parameter: /admin/appointments?businessId=...',
+      });
+      return;
+    }
+
+    const prisma = getPrismaClient();
+
+    // Verify business exists
+    const business = await prisma.business.findUnique({
+      where: { id: businessId },
+    });
+
+    if (!business) {
+      res.status(404).json({
+        error: 'Business not found',
+      });
+      return;
+    }
+
+    // Get appointments for this business
+    const appointments = await prisma.appointment.findMany({
+      where: { businessId },
+      orderBy: { start: 'desc' },
+      take: 100, // Limit to most recent 100
+    });
+
+    res.status(200).json(appointments);
+  } catch (error) {
+    console.error('Get appointments error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? String(error) : undefined,
+    });
+  }
+}
+
+/**
+ * GET /admin/businesses/:id/appointments
+ * Get appointments for a business (using path parameter - alternative route)
+ */
+export async function getAppointmentsByPath(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
 

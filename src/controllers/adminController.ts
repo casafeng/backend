@@ -368,3 +368,95 @@ export async function updateKnowledgeBase(req: Request, res: Response): Promise<
   }
 }
 
+/**
+ * GET /admin/businesses/:id/call-logs
+ * Get call logs for a business
+ */
+export async function getCallLogs(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+
+    if (!id || id === 'undefined') {
+      res.status(400).json({
+        error: 'Business ID is required',
+      });
+      return;
+    }
+
+    const prisma = getPrismaClient();
+
+    // Verify business exists
+    const business = await prisma.business.findUnique({
+      where: { id },
+    });
+
+    if (!business) {
+      res.status(404).json({
+        error: 'Business not found',
+      });
+      return;
+    }
+
+    // Get call logs for this business
+    const callLogs = await prisma.callLog.findMany({
+      where: { businessId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 100, // Limit to most recent 100
+    });
+
+    res.status(200).json(callLogs);
+  } catch (error) {
+    console.error('Get call logs error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? String(error) : undefined,
+    });
+  }
+}
+
+/**
+ * GET /admin/businesses/:id/appointments
+ * Get appointments for a business
+ */
+export async function getAppointments(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+
+    if (!id || id === 'undefined') {
+      res.status(400).json({
+        error: 'Business ID is required',
+      });
+      return;
+    }
+
+    const prisma = getPrismaClient();
+
+    // Verify business exists
+    const business = await prisma.business.findUnique({
+      where: { id },
+    });
+
+    if (!business) {
+      res.status(404).json({
+        error: 'Business not found',
+      });
+      return;
+    }
+
+    // Get appointments for this business
+    const appointments = await prisma.appointment.findMany({
+      where: { businessId: id },
+      orderBy: { start: 'desc' },
+      take: 100, // Limit to most recent 100
+    });
+
+    res.status(200).json(appointments);
+  } catch (error) {
+    console.error('Get appointments error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? String(error) : undefined,
+    });
+  }
+}
+

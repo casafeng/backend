@@ -83,11 +83,13 @@ export async function businessSignup(req: Request, res: Response): Promise<void>
     });
 
     // Return created business (excluding sensitive fields if any)
+    // Hide placeholder phone numbers from frontend - return null if it's a placeholder
+    const isPlaceholderPhone = business.phoneNumber.startsWith('pending-');
     const response = {
       id: business.id,
       name: business.name,
       email: business.email,
-      phoneNumber: business.phoneNumber,
+      phoneNumber: isPlaceholderPhone ? null : business.phoneNumber, // Hide placeholder from frontend
       timezone: business.timezone,
       description: business.description,
       knowledgeBase: business.knowledgeBase,
@@ -100,6 +102,7 @@ export async function businessSignup(req: Request, res: Response): Promise<void>
         id: business.id,
         name: business.name,
         email: business.email,
+        phoneNumber: isPlaceholderPhone ? '[placeholder hidden]' : business.phoneNumber,
       });
     }
 

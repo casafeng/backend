@@ -1,6 +1,6 @@
 import { Express } from 'express';
 import { handleVoiceWebhook, healthCheck } from '../controllers/voiceWebhook';
-import { businessSignup } from '../controllers/authController';
+import { businessSignup, businessLogin } from '../controllers/authController';
 import { getBusiness, getBusinessByEmail, updateBusiness, updateBusinessByEmail, updateKnowledgeBase, getCallLogs, getCallLogsByPath, getAppointments, getAppointmentsByPath } from '../controllers/adminController';
 
 /**
@@ -17,6 +17,7 @@ export function registerRoutes(app: Express): void {
   
   // Auth routes
   app.post('/auth/business/signup', businessSignup);
+  app.post('/auth/business/login', businessLogin);
   
   // Admin routes
   // Note: specific routes (by-email, /kb, /call-logs, /appointments) must come before :id route to avoid route conflicts

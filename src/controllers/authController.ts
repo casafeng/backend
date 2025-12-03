@@ -124,3 +124,84 @@ export async function businessSignup(req: Request, res: Response): Promise<void>
   }
 }
 
+/**
+ * Business login request schema
+ */
+const businessLoginSchema = z.object({
+  email: z.string().email('Valid email is required'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+/**
+ * POST /auth/business/login
+ * Authenticate business and return business data
+ */
+export async function businessLogin(req: Request, res: Response): Promise<void> {
+  try {
+    // Validate request body
+    const validatedData = businessLoginSchema.parse(req.body);
+
+    const prisma = getPrismaClient();
+
+    // Find business by email
+    const business = await prisma.business.findFirst({
+      where: { email: validatedData.email },
+    });
+
+    if (!business) {
+      res.status(401).json({
+        error: 'Invalid email or password',
+      });
+      return;
+    }
+
+    // Verify password
+    const passwordMatch = await bcrypt.compare(validatedData.password, business.password);
+
+    if (!passwordMatch) {
+      res.status(401).json({
+        error: 'Invalid email or password',
+      });
+      return;
+    }
+
+    // Hide placeholder phone numbers from frontend
+    const isPlaceholderPhone = business.phoneNumber.startsWith('pending-');
+    const response = {
+      id: business.id,
+      name: business.name,
+      email: business.email,
+      phoneNumber: isPlaceholderPhone ? null : business.phoneNumber,
+      timezone: business.timezone,
+      description: business.description,
+      knowledgeBase: business.knowledgeBase,
+      createdAt: business.createdAt,
+    };
+
+    // Log for debugging (remove in production if needed)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Business login successful:', {
+        id: business.id,
+        name: business.name,
+        email: business.email,
+      });
+    }
+
+    res.status(200).json(response);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({
+        error: 'Validation error',
+        details: error.errors,
+      });
+      return;
+    }
+
+    console.error('Business login error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? String(error) : undefined,
+    });
+  }
+}
+

@@ -57,6 +57,7 @@ model Appointment {
 model Business {
   id           String        @id @default(cuid())
   name         String
+  email        String        // Required - used for authentication
   phoneNumber  String        @unique
   timezone     String        @default("Europe/Rome")
   description  String?

@@ -9,7 +9,7 @@ import { z } from 'zod';
  */
 const businessSignupSchema = z.object({
   name: z.string().min(1, 'Business name is required'),
-  email: z.string().email().optional(), // Accepted but not stored (for future auth)
+  email: z.string().email('Valid email is required'), // Required - stored in database
   password: z.string().optional(), // Accepted but not stored (for future auth)
   phoneNumber: z.string().optional(), // Optional - will generate placeholder if missing
   timezone: z.string().optional(),
@@ -68,6 +68,7 @@ export async function businessSignup(req: Request, res: Response): Promise<void>
     const business = await prisma.business.create({
       data: {
         name: validatedData.name,
+        email: validatedData.email, // Required field from database
         phoneNumber,
         timezone: validatedData.timezone || 'America/New_York',
         description: validatedData.description,
@@ -80,6 +81,7 @@ export async function businessSignup(req: Request, res: Response): Promise<void>
     res.status(201).json({
       id: business.id,
       name: business.name,
+      email: business.email,
       phoneNumber: business.phoneNumber,
       timezone: business.timezone,
       description: business.description,

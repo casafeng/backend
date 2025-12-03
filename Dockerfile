@@ -1,7 +1,13 @@
 # Multi-stage build for production-ready Docker image
-FROM node:18-alpine AS builder
+# Use Debian-based image for better Prisma compatibility (glibc instead of musl)
+FROM node:20-slim AS builder
 
 WORKDIR /app
+
+# Install build dependencies for Prisma
+RUN apt-get update && apt-get install -y \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package*.json ./
@@ -14,16 +20,21 @@ RUN npm ci
 # Copy source code
 COPY src ./src
 
-# Generate Prisma client
+# Generate Prisma client (will generate glibc binary)
 RUN npm run prisma:generate
 
 # Build TypeScript
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
+
+# Install runtime dependencies for Prisma (OpenSSL)
+RUN apt-get update && apt-get install -y \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package*.json ./

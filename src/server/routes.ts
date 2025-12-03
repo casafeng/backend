@@ -7,6 +7,11 @@ import { getBusiness, getBusinessByEmail, updateBusiness } from '../controllers/
  * Register all routes
  */
 export function registerRoutes(app: Express): void {
+  // Root endpoint for deployment checks
+  app.get('/', (req, res) => {
+    res.status(200).json({ status: 'ok', service: 'ai-receptionist-backend' });
+  });
+  
   // Health check
   app.get('/health', healthCheck);
   

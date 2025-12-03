@@ -4,30 +4,57 @@ import { z } from 'zod';
 
 /**
  * Business signup request schema
+ * Accepts minimal fields from frontend (name, email, password)
+ * Optional fields (phoneNumber, timezone, description, knowledgeBase) use defaults
  */
 const businessSignupSchema = z.object({
   name: z.string().min(1, 'Business name is required'),
-  phoneNumber: z.string().min(1, 'Phone number is required'),
-  timezone: z.string().optional().default('America/New_York'),
+  email: z.string().email().optional(), // Accepted but not stored (for future auth)
+  password: z.string().optional(), // Accepted but not stored (for future auth)
+  phoneNumber: z.string().optional(), // Optional - will generate placeholder if missing
+  timezone: z.string().optional(),
   description: z.string().optional(),
   knowledgeBase: z.record(z.any()).optional(),
 });
 
 /**
+ * Generate a unique placeholder phone number for businesses without one
+ */
+function generatePlaceholderPhoneNumber(): string {
+  // Generate a unique placeholder that won't conflict with real phone numbers
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 10000);
+  return `pending-${timestamp}-${random}`;
+}
+
+/**
  * POST /auth/business/signup
  * Create a new business account
+ * Accepts minimal fields (name required, others optional with defaults)
  */
 export async function businessSignup(req: Request, res: Response): Promise<void> {
   try {
-    // Validate request body
+    // Validate request body - only name is required (enforced by Zod schema)
     const validatedData = businessSignupSchema.parse(req.body);
 
     const prisma = getPrismaClient();
 
-    // Check if business with this phone number already exists
-    const existing = await prisma.business.findUnique({
-      where: { phoneNumber: validatedData.phoneNumber },
+    // Generate phoneNumber if not provided (required by schema, unique constraint)
+    // Retry up to 5 times if placeholder collision occurs (extremely unlikely)
+    let phoneNumber = validatedData.phoneNumber || generatePlaceholderPhoneNumber();
+    let existing = await prisma.business.findUnique({
+      where: { phoneNumber },
     });
+
+    // Handle placeholder collision by generating a new one
+    let retries = 0;
+    while (existing && phoneNumber.startsWith('pending-') && retries < 5) {
+      phoneNumber = generatePlaceholderPhoneNumber();
+      existing = await prisma.business.findUnique({
+        where: { phoneNumber },
+      });
+      retries++;
+    }
 
     if (existing) {
       res.status(409).json({
@@ -37,12 +64,12 @@ export async function businessSignup(req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Create new business
+    // Create new business with defaults for optional fields
     const business = await prisma.business.create({
       data: {
         name: validatedData.name,
-        phoneNumber: validatedData.phoneNumber,
-        timezone: validatedData.timezone,
+        phoneNumber,
+        timezone: validatedData.timezone || 'America/New_York',
         description: validatedData.description,
         // Use undefined instead of null for optional JSON fields (Prisma v5+ requirement)
         knowledgeBase: validatedData.knowledgeBase,

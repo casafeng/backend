@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { getPrismaClient } from '../db/prisma';
 import { z } from 'zod';
+import bcrypt from 'bcrypt';
 
 /**
  * Business signup request schema
@@ -10,7 +11,7 @@ import { z } from 'zod';
 const businessSignupSchema = z.object({
   name: z.string().min(1, 'Business name is required'),
   email: z.string().email('Valid email is required'), // Required - stored in database
-  password: z.string().optional(), // Accepted but not stored (for future auth)
+  password: z.string().min(8, 'Password must be at least 8 characters'), // Required - hashed and stored
   phoneNumber: z.string().optional(), // Optional - will generate placeholder if missing
   timezone: z.string().optional(),
   description: z.string().optional(),
@@ -64,11 +65,15 @@ export async function businessSignup(req: Request, res: Response): Promise<void>
       return;
     }
 
+    // Hash password before storing
+    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+
     // Create new business with defaults for optional fields
     const business = await prisma.business.create({
       data: {
         name: validatedData.name,
         email: validatedData.email, // Required field from database
+        password: hashedPassword, // Hashed password
         phoneNumber,
         timezone: validatedData.timezone || 'America/New_York',
         description: validatedData.description,

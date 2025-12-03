@@ -58,6 +58,7 @@ model Business {
   id           String        @id @default(cuid())
   name         String
   email        String        // Required - used for authentication
+  password     String        // Required - hashed password for authentication
   phoneNumber  String        @unique
   timezone     String        @default("Europe/Rome")
   description  String?

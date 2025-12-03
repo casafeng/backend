@@ -23,10 +23,10 @@ model CallLog {
   requestedEnd   DateTime?
   bookedStart    DateTime?
   bookedEnd      DateTime?
-  status         String    // e.g. "booked", "suggested_alternatives", "failed", "unavailable"
+  status         String // e.g. "booked", "suggested_alternatives", "failed", "unavailable"
   decisionReason String?
   rawPayload     Json?
-  toolCallId     String?   // Vapi toolCallId for tracking
+  toolCallId     String? // Vapi toolCallId for tracking
 
   @@index([status])
   @@index([createdAt])
@@ -45,9 +45,9 @@ model Appointment {
   start         DateTime
   end           DateTime
   source        String    @default("twilio_vapi")
-  calendarId    String?   // Google Calendar ID used
-  googleEventId String?   // Google Calendar event ID
-  callLogId     String?   // Reference to CallLog if created from a call
+  calendarId    String? // Google Calendar ID used
+  googleEventId String? // Google Calendar event ID
+  callLogId     String? // Reference to CallLog if created from a call
 
   @@index([start])
   @@index([googleEventId])
@@ -55,15 +55,15 @@ model Appointment {
 }
 
 model Business {
-  id           String        @id @default(cuid())
-  name         String
-  email        String        // Required - used for authentication
-  password     String        // Required - hashed password for authentication
-  phoneNumber  String        @unique
-  timezone     String        @default("Europe/Rome")
-  description  String?
-  knowledgeBase Json?        // Per-business knowledge base (hours, menu, policies, etc.)
-  createdAt    DateTime      @default(now())
-  appointments Appointment[]
-  callLogs     CallLog[]
+  id            String        @id @default(cuid())
+  name          String
+  email         String // Required - used for authentication
+  password      String // Required - hashed password for authentication
+  phoneNumber   String        @unique
+  timezone      String        @default("Europe/Rome")
+  description   String?
+  knowledgeBase Json? // Per-business knowledge base (hours, menu, policies, etc.)
+  createdAt     DateTime      @default(now())
+  appointments  Appointment[]
+  callLogs      CallLog[]
 }

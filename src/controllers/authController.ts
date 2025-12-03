@@ -84,7 +84,7 @@ export async function businessSignup(req: Request, res: Response): Promise<void>
 
     // Return created business (excluding sensitive fields if any)
     // Hide placeholder phone numbers from frontend - return null if it's a placeholder
-    const isPlaceholderPhone = business.phoneNumber.startsWith('pending-');
+    const isPlaceholderPhone = business.phoneNumber?.startsWith('pending-') ?? false;
     const response = {
       id: business.id,
       name: business.name,
@@ -166,7 +166,7 @@ export async function businessLogin(req: Request, res: Response): Promise<void> 
     }
 
     // Hide placeholder phone numbers from frontend
-    const isPlaceholderPhone = business.phoneNumber.startsWith('pending-');
+    const isPlaceholderPhone = business.phoneNumber?.startsWith('pending-') ?? false;
     const response = {
       id: business.id,
       name: business.name,

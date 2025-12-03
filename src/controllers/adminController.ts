@@ -399,13 +399,21 @@ export async function getCallLogs(req: Request, res: Response): Promise<void> {
     }
 
     // Get call logs for this business
-    const callLogs = await prisma.callLog.findMany({
-      where: { businessId },
-      orderBy: { createdAt: 'desc' },
-      take: 100, // Limit to most recent 100
-    });
+    const [callLogs, total] = await Promise.all([
+      prisma.callLog.findMany({
+        where: { businessId },
+        orderBy: { createdAt: 'desc' },
+        take: 100, // Limit to most recent 100
+      }),
+      prisma.callLog.count({
+        where: { businessId },
+      }),
+    ]);
 
-    res.status(200).json(callLogs);
+    res.status(200).json({
+      data: callLogs,
+      total,
+    });
   } catch (error) {
     console.error('Get call logs error:', error);
     res.status(500).json({
@@ -445,13 +453,21 @@ export async function getCallLogsByPath(req: Request, res: Response): Promise<vo
     }
 
     // Get call logs for this business
-    const callLogs = await prisma.callLog.findMany({
-      where: { businessId: id },
-      orderBy: { createdAt: 'desc' },
-      take: 100, // Limit to most recent 100
-    });
+    const [callLogs, total] = await Promise.all([
+      prisma.callLog.findMany({
+        where: { businessId: id },
+        orderBy: { createdAt: 'desc' },
+        take: 100, // Limit to most recent 100
+      }),
+      prisma.callLog.count({
+        where: { businessId: id },
+      }),
+    ]);
 
-    res.status(200).json(callLogs);
+    res.status(200).json({
+      data: callLogs,
+      total,
+    });
   } catch (error) {
     console.error('Get call logs error:', error);
     res.status(500).json({
@@ -492,13 +508,21 @@ export async function getAppointments(req: Request, res: Response): Promise<void
     }
 
     // Get appointments for this business
-    const appointments = await prisma.appointment.findMany({
-      where: { businessId },
-      orderBy: { start: 'desc' },
-      take: 100, // Limit to most recent 100
-    });
+    const [appointments, total] = await Promise.all([
+      prisma.appointment.findMany({
+        where: { businessId },
+        orderBy: { start: 'desc' },
+        take: 100, // Limit to most recent 100
+      }),
+      prisma.appointment.count({
+        where: { businessId },
+      }),
+    ]);
 
-    res.status(200).json(appointments);
+    res.status(200).json({
+      data: appointments,
+      total,
+    });
   } catch (error) {
     console.error('Get appointments error:', error);
     res.status(500).json({
@@ -538,13 +562,21 @@ export async function getAppointmentsByPath(req: Request, res: Response): Promis
     }
 
     // Get appointments for this business
-    const appointments = await prisma.appointment.findMany({
-      where: { businessId: id },
-      orderBy: { start: 'desc' },
-      take: 100, // Limit to most recent 100
-    });
+    const [appointments, total] = await Promise.all([
+      prisma.appointment.findMany({
+        where: { businessId: id },
+        orderBy: { start: 'desc' },
+        take: 100, // Limit to most recent 100
+      }),
+      prisma.appointment.count({
+        where: { businessId: id },
+      }),
+    ]);
 
-    res.status(200).json(appointments);
+    res.status(200).json({
+      data: appointments,
+      total,
+    });
   } catch (error) {
     console.error('Get appointments error:', error);
     res.status(500).json({
